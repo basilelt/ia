@@ -175,8 +175,8 @@ window.title("Itineria")
 
 # Décommenter la carte pour choisir la bonne taille pour votre machine
 # map_image = tk.PhotoImage(file="img/France_map_admin_1066_1024.png")
-map_image = tk.PhotoImage(file="img/France_map_admin_799_768.png")
-# map_image = tk.PhotoImage(file="img/France_map_admin_499_480.png")
+# map_image = tk.PhotoImage(file="img/France_map_admin_799_768.png")
+map_image = tk.PhotoImage(file="img/France_map_admin_499_480.png")
 
 
 width = map_image.width()
