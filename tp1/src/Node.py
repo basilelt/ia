@@ -1,7 +1,6 @@
 class Node:
-    def __init__(self, value):
-        self.value = value
-        self.next = None
-
-    def __repr__(self):
-        return f"Node({self.value})"
+    def __init__(self, state):
+        self.state = state
+        self.path_cost = 0
+        self.parent = None
+        self.road_to_parent = None

@@ -8,6 +8,10 @@ from queue import PriorityQueue
 import math
 import time
 
+from src.Node import Node
+from src.Town import Town
+from src.Road import Road
+
 
 search_algorithms = (
     "Parcours en largeur",
@@ -24,69 +28,78 @@ road_color = "lightgreen"
 path_color = "red"
 
 
-class Town:
-
-    def __init__(self, dept_id, name, latitude, longitude):
-        self.dept_id = dept_id
-        self.name = name
-        self.latitude = latitude
-        self.longitude = longitude
-        self.neighbours = dict()
-
-
-class Road:
-
-    def __init__(self, town1, town2, distance, time):
-        self.town1 = town1
-        self.town2 = town2
-        self.distance = distance
-        self.time = time
-
-
 # Distance vol d'oiseau
-def crowfliesdistance(town1, town2):
+def crowfliesdistance(town1, town2, cost):
     # À remplir !
     return 0
 
 
 # A-Star
-def a_star(start_town, end_town):
+def a_star(start_town, end_town, cost):
     # À remplir !
     return None
 
 
 # Recherche gloutonne
-def greedy_search(start_town, end_town):
+def greedy_search(start_town, end_town, cost):
     # À remplir !
     return None
 
 
 # Parcours à coût uniforme
-def ucs(start_town, end_town):
+def ucs(start_town, end_town, cost):
     # À remplir !
     return None
 
 
 # Parcours en profondeur itératif
-def dfs_iter(start_town, end_town):
+def dfs_iter(start_town, end_town, cost):
     # À remplir !
     return None
 
 
 # Parcours en profondeur
-def dfs(start_town, end_town):
+def dfs(start_town, end_town, cost):
     # À remplir !
     return None
 
 
 # Parcours en largeur
-def bfs(start_town, end_town):
-    # À remplir !
+def bfs(start_town, end_town, cost):
+    start_node = Node(start_town)
+    if start_town == end_town:
+        return start_node
+
+    frontier = Queue(maxsize=0)
+    frontier.put(start_node)
+    explored = set()
+
+    while not frontier.empty():
+        node = frontier.get()
+        if node.state == end_town:
+            return node
+
+        if node.state not in explored:
+            explored.add(node.state)
+            # print("Exploring:", node.state.name)
+
+            for neighbour, road in node.state.neighbours.items():
+                child = Node(neighbour)
+                child.parent = node
+                child.road_to_parent = road
+                if cost == 0:  # distance
+                    child.path_cost = node.path_cost + road.distance
+                else: # time
+                    child.path_cost = node.path_cost + road.time
+                # print("  Child:", child.state.name, "Cost:", child.path_cost)
+                frontier.put(child)
+
     return None
 
 
 def display_path(path):
     current_node = path
+    # print("current_node:", current_node.state.name)
     while current_node.parent is not None:
         canvas1.itemconfig(road_lines[current_node.road_to_parent], fill=path_color)
         print(
@@ -107,17 +120,17 @@ def run_search():
     cost = combobox_cost.current()
     computing_time = time.time()
     if search_method == 0:  # Parcours en largeur
-        path = bfs(start_city, end_city)
+        path = bfs(start_city, end_city, cost)
     elif search_method == 1:  # Parcours en profondeur
-        path = dfs(start_city, end_city)
+        path = dfs(start_city, end_city, cost)
     elif search_method == 2:  # Parcours en profondeur itératif
-        path = dfs_iter(start_city, end_city)
+        path = dfs_iter(start_city, end_city, cost)
     elif search_method == 3:  # Parcours à coût uniforme
-        path = ucs(start_city, end_city)
+        path = ucs(start_city, end_city, cost)
     elif search_method == 4:  # Recherche gloutonne
-        path = greedy_search(start_city, end_city)
+        path = greedy_search(start_city, end_city, cost)
     elif search_method == 5:  # A*
-        path = a_star(start_city, end_city)
+        path = a_star(start_city, end_city, cost)
     else:
         path = None
     computing_time = time.time() - computing_time
@@ -130,7 +143,7 @@ def run_search():
             + " avec "
             + search_algorithms[search_method]
         )
-        label_distance["text"] = "Distance: " + str(path.cost) + "km"
+        label_distance["text"] = "Distance: " + str(path.path_cost) + "km"
         label_computing_time["text"] = "Temps de calcul: " + str(computing_time) + "s"
         display_path(path)
     button_run["state"] = tk.NORMAL
