@@ -52,9 +52,9 @@ def greedy_search(start_town, end_town, cost_type):
 # Parcours à coût uniforme
 def ucs(start_town, end_town, cost_type):
     start_node = Node(start_town)
-    if start_town == end_town:
-        return start_node
-    return None
+    frontier = Queue(maxsize=0)
+    frontier.put(start_node)
+    explored = set()
 
 
 def dfs_recursive(node, end_town, explored, cost_type, depth_limit=None):
@@ -102,9 +102,6 @@ def dfs(start_town, end_town, cost_type):
 # Parcours en largeur
 def bfs(start_town, end_town, cost_type):
     start_node = Node(start_town)
-    if start_town == end_town:
-        return start_node
-
     frontier = Queue(maxsize=0)
     frontier.put(start_node)
     explored = set()
@@ -125,8 +122,6 @@ def bfs(start_town, end_town, cost_type):
                     child.path_cost = node.path_cost + road.time
                 # print("  Child:", child.state.name, "Cost:", child.path_cost)
                 frontier.put(child)
-
-    return None
 
 
 def display_path(path):
