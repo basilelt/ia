@@ -60,10 +60,9 @@ def ucs(start_town, end_town, cost_type):
 def dfs_recursive(node, end_town, explored, cost_type, depth_limit=None):
     if node.state == end_town:
         return node
-    
-    if depth_limit is not None:
-        if depth_limit == 0:
-            return None
+
+    if depth_limit == 0:
+        return None
 
     explored.add(node.state)
     for neighbour, road in node.state.neighbours.items():
