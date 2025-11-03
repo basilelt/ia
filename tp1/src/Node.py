@@ -1,6 +1,6 @@
 class Node:
-    def __init__(self, state):
+    def __init__(self, state, parent=None, road_to_parent=None):
         self.state = state
         self.path_cost = 0
-        self.parent = None
-        self.road_to_parent = None
+        self.parent = parent
+        self.road_to_parent = road_to_parent

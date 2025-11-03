@@ -29,43 +29,79 @@ path_color = "red"
 
 
 # Distance vol d'oiseau
-def crowfliesdistance(town1, town2, cost):
-    # À remplir !
+def crowfliesdistance(town1, town2):
     return 0
 
 
 # A-Star
-def a_star(start_town, end_town, cost):
-    # À remplir !
+def a_star(start_town, end_town, cost_type):
+    start_node = Node(start_town)
+    if start_town == end_town:
+        return start_node
     return None
 
 
 # Recherche gloutonne
-def greedy_search(start_town, end_town, cost):
-    # À remplir !
+def greedy_search(start_town, end_town, cost_type):
+    start_node = Node(start_town)
+    if start_town == end_town:
+        return start_node
     return None
 
 
 # Parcours à coût uniforme
-def ucs(start_town, end_town, cost):
-    # À remplir !
+def ucs(start_town, end_town, cost_type):
+    start_node = Node(start_town)
+    if start_town == end_town:
+        return start_node
     return None
+
+
+def dfs_recursive(node, end_town, explored, cost_type, depth_limit=None):
+    if node.state == end_town:
+        return node
+    
+    if depth_limit is not None:
+        if depth_limit == 0:
+            return None
+
+    explored.add(node.state)
+    for neighbour, road in node.state.neighbours.items():
+        if neighbour not in explored:
+            child = Node(neighbour, node, road)
+            if cost_type == 0:  # distance
+                child.path_cost = node.path_cost + road.distance
+            else:  # time
+                child.path_cost = node.path_cost + road.time
+            if depth_limit is not None:
+                result = dfs_recursive(child, end_town, explored, cost_type, depth_limit - 1)
+            else:
+                result = dfs_recursive(child, end_town, explored, cost_type)
+            if result:
+                return result
 
 
 # Parcours en profondeur itératif
-def dfs_iter(start_town, end_town, cost):
-    # À remplir !
-    return None
+def dfs_iter(start_town, end_town, cost_type):
+    start_node = Node(start_town)
+    depth = 0
+    while True:
+        explored = set()
+        result = dfs_recursive(start_node, end_town, explored, cost_type, depth)
+        if result:
+            return result
+        depth += 1
 
 
-# Parcours en profondeur
-def dfs(start_town, end_town, cost):
-    # À remplir !
-    return None
+# Parcours en profondeur récursif
+def dfs(start_town, end_town, cost_type):
+    start_node = Node(start_town)
+    explored = set()
+    return dfs_recursive(start_node, end_town, explored, cost_type)
 
 
 # Parcours en largeur
-def bfs(start_town, end_town, cost):
+def bfs(start_town, end_town, cost_type):
     start_node = Node(start_town)
     if start_town == end_town:
         return start_node
@@ -82,14 +118,11 @@ def bfs(start_town, end_town, cost):
         if node.state not in explored:
             explored.add(node.state)
             # print("Exploring:", node.state.name)
-
             for neighbour, road in node.state.neighbours.items():
-                child = Node(neighbour)
-                child.parent = node
-                child.road_to_parent = road
-                if cost == 0:  # distance
+                child = Node(neighbour, node, road)
+                if cost_type == 0:  # distance
                     child.path_cost = node.path_cost + road.distance
-                else: # time
+                else:  # time
                     child.path_cost = node.path_cost + road.time
                 # print("  Child:", child.state.name, "Cost:", child.path_cost)
                 frontier.put(child)
@@ -102,10 +135,10 @@ def display_path(path):
     # print("current_node:", current_node.state.name)
     while current_node.parent is not None:
         canvas1.itemconfig(road_lines[current_node.road_to_parent], fill=path_color)
-        print(
-            current_node.road_to_parent.town1.name,
-            current_node.road_to_parent.town2.name,
-        )
+        # print(
+        #     current_node.road_to_parent.town1.name,
+        #     current_node.road_to_parent.town2.name,
+        # )
         current_node = current_node.parent
 
 
@@ -117,20 +150,20 @@ def run_search():
     start_city = towns[combobox_start.current() + 1]
     end_city = towns[combobox_end.current() + 1]
     search_method = combobox_algorithm.current()
-    cost = combobox_cost.current()
+    cost_type = combobox_cost.current()
     computing_time = time.time()
     if search_method == 0:  # Parcours en largeur
-        path = bfs(start_city, end_city, cost)
+        path = bfs(start_city, end_city, cost_type)
     elif search_method == 1:  # Parcours en profondeur
-        path = dfs(start_city, end_city, cost)
+        path = dfs(start_city, end_city, cost_type)
     elif search_method == 2:  # Parcours en profondeur itératif
-        path = dfs_iter(start_city, end_city, cost)
+        path = dfs_iter(start_city, end_city, cost_type)
     elif search_method == 3:  # Parcours à coût uniforme
-        path = ucs(start_city, end_city, cost)
+        path = ucs(start_city, end_city, cost_type)
     elif search_method == 4:  # Recherche gloutonne
-        path = greedy_search(start_city, end_city, cost)
+        path = greedy_search(start_city, end_city, cost_type)
     elif search_method == 5:  # A*
-        path = a_star(start_city, end_city, cost)
+        path = a_star(start_city, end_city, cost_type)
     else:
         path = None
     computing_time = time.time() - computing_time
@@ -143,7 +176,10 @@ def run_search():
             + " avec "
             + search_algorithms[search_method]
         )
-        label_distance["text"] = "Distance: " + str(path.path_cost) + "km"
+        if cost_type == 0:  # distance
+            label_distance["text"] = "Distance: " + str(path.path_cost) + "km"
+        else:  # time
+            label_distance["text"] = "Temps: " + str(path.path_cost) + "min"
         label_computing_time["text"] = "Temps de calcul: " + str(computing_time) + "s"
         display_path(path)
     button_run["state"] = tk.NORMAL
