@@ -21,7 +21,7 @@ search_algorithms = (
     "Recherche gloutonne",
     "A*",
 )
-costs = ("distance", "temps")
+costs = ("distance", "temps", "points")
 
 town_color = "lightcoral"
 road_color = "lightgreen"
@@ -74,7 +74,9 @@ def a_star(start_town, end_town, cost_type):
     actual_costs = {start_node.state: 0}
 
     while not frontier.empty():
-        node_cost, node = frontier.get()  # get the node with the lowest cost (heuristic + actual)
+        node_cost, node = (
+            frontier.get()
+        )  # get the node with the lowest cost (heuristic + actual)
         mark_town_visited(node.state)
 
         if node.state == end_town:
@@ -92,8 +94,10 @@ def a_star(start_town, end_town, cost_type):
 
             if cost_type == 0:  # distance
                 new_actual_cost = actual_costs[node.state] + road.distance
-            else:  # time
+            elif cost_type == 1:  # time
                 new_actual_cost = actual_costs[node.state] + road.time
+            else:
+                new_actual_cost = actual_costs[node.state] + 1
             actual_costs[child.state] = new_actual_cost
 
             # Use heuristic from child to goal for priority + actual path cost
@@ -135,8 +139,10 @@ def greedy_search(start_town, end_town, cost_type):
 
             if cost_type == 0:  # distance
                 new_actual_cost = actual_costs[node.state] + road.distance
-            else:  # time
+            elif cost_type == 1:  # time
                 new_actual_cost = actual_costs[node.state] + road.time
+            else:
+                new_actual_cost = actual_costs[node.state] + 1
             actual_costs[child.state] = new_actual_cost
 
             # Use heuristic from child to goal for priority
@@ -173,8 +179,10 @@ def ucs(start_town, end_town, cost_type):
 
             if cost_type == 0:  # distance
                 child.path_cost = node.path_cost + road.distance
-            else:  # time
+            elif cost_type == 1:  # time
                 child.path_cost = node.path_cost + road.time
+            else:
+                child.path_cost = node.path_cost + 1
 
             if child.state not in explored:
                 if (
@@ -201,8 +209,10 @@ def dfs_recursive(node, end_town, explored, cost_type, depth_limit=None):
 
             if cost_type == 0:  # distance
                 child.path_cost = node.path_cost + road.distance
-            else:  # time
+            elif cost_type == 1:  # time
                 child.path_cost = node.path_cost + road.time
+            else:
+                child.path_cost = node.path_cost + 1
 
             if depth_limit is not None:
                 result = dfs_recursive(
@@ -255,8 +265,10 @@ def bfs(start_town, end_town, cost_type):
 
                 if cost_type == 0:  # distance
                     child.path_cost = node.path_cost + road.distance
-                else:  # time
+                elif cost_type == 1:  # time
                     child.path_cost = node.path_cost + road.time
+                else:
+                    child.path_cost = node.path_cost + 1
 
                 # print("  Child:", child.state.name, "Cost:", child.path_cost)
                 frontier.put(child)
@@ -312,8 +324,10 @@ def run_search():
         )
         if cost_type == 0:  # distance
             label_distance["text"] = "Distance: " + str(path.path_cost) + "km"
-        else:  # time
+        elif cost_type == 1:  # time
             label_distance["text"] = "Temps: " + str(path.path_cost) + "min"
+        else:
+            label_distance["text"] = "Points: " + str(path.path_cost)
         label_computing_time["text"] = "Temps de calcul: " + str(computing_time) + "s"
         display_path(path)
     button_run["state"] = tk.NORMAL
