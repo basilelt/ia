@@ -28,10 +28,25 @@ road_color = "lightgreen"
 path_color = "red"
 
 
-# Distance vol d'oiseau
-def crowfliesdistance(town1, town2):
-    return 0
+def deg2rad(deg):
+  return deg * (math.pi/180)
 
+
+# Distance vol d'oiseau
+def crowfliesdistance(town1, town2):    
+    lon1 = longitude_to_pixel(road.town1.longitude)
+    lat1 = latitude_to_pixel(road.town1.latitude)
+    lon2 = longitude_to_pixel(road.town2.longitude)
+    lat2 = latitude_to_pixel(road.town2.latitude)
+    
+    R = 6371 # Radius of the earth in km
+    dLat = deg2rad(lat2-lat1)
+    dLon = deg2rad(lon2-lon1)
+    a = math.sin(dLat/2) * math.sin(dLat/2) + math.cos(deg2rad(lat1)) * math.cos(deg2rad(lat2)) * math.sin(dLon/2) * math.sin(dLon/2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    
+    return R * c; # distance in km
+    
 
 # A-Star
 def a_star(start_town, end_town, cost_type):
@@ -44,9 +59,29 @@ def a_star(start_town, end_town, cost_type):
 # Recherche gloutonne
 def greedy_search(start_town, end_town, cost_type):
     start_node = Node(start_town)
-    if start_town == end_town:
-        return start_node
-    return None
+    frontier = PriorityQueue(maxsize=0)
+    frontier.put((start_node.path_cost, start_node))
+    explored = set()
+    
+    # Track costs in frontier
+    frontier_costs = {start_node.state: start_node.path_cost}
+    
+    while not frontier.empty():
+        node_cost, node = frontier.get() # get the node with the lowest cost
+        if node.state == end_town:
+            return node
+        
+        explored.add(node.state)
+        for neighbour, road in node.state.neighbours.items():
+            child = Node(neighbour, node, road)
+            child.path_cost = crowfliesdistance(node.state, neighbour)
+            
+            if child.state not in explored:
+                if child.state not in frontier_costs:
+                    frontier.decreaseKey(child)
+
+                frontier_costs[child.state] = child.path_cost
+                frontier.put((child.path_cost, child))
 
 
 # Parcours à coût uniforme
