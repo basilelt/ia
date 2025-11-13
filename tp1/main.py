@@ -59,33 +59,44 @@ def a_star(start_town, end_town, cost_type):
 # Recherche gloutonne
 def greedy_search(start_town, end_town, cost_type):
     start_node = Node(start_town)
+    
+    # Initialize heuristic for start node
+    start_node.path_cost = crowfliesdistance(start_town, end_town)
+    
     frontier = PriorityQueue(maxsize=0)
     frontier.put((start_node.path_cost, start_node))
     explored = set()
-    
-    # Track costs in frontier
-    frontier_costs = {start_node.state: start_node.path_cost}
-    
+
+    # Track actual path costs
+    actual_costs = {start_node.state: 0}
+
     while not frontier.empty():
-        node_cost, node = frontier.get() # get the node with the lowest cost
-        
+        node_cost, node = frontier.get() # get the node with the lowest heuristic cost
+
         if node.state == end_town:
-            node.path_cost = node.greedy_path_cost
+            node.path_cost = actual_costs[node.state]  # Return actual path cost
             return node
-        
+
+        if node.state in explored:
+            continue
+
         explored.add(node.state)
         for neighbour, road in node.state.neighbours.items():
             child = Node(neighbour, node, road)
-            child.greedy_path_cost = node.greedy_path_cost + road.distance
-            
-            # Crowflies distance
-            child.path_cost = crowfliesdistance(node.state, neighbour)
-            
-            if child.state not in explored and child.state not in frontier_costs:
-                frontier_costs[child.state] = child.path_cost
-                frontier.put((child.path_cost, child))
+            if child.state in explored:
+                continue
 
-    return None # No path found (greedy is non completful)
+            if cost_type == 0:  # distance
+                new_actual_cost = actual_costs[node.state] + road.distance
+            else:  # time
+                new_actual_cost = actual_costs[node.state] + road.time
+            actual_costs[child.state] = new_actual_cost
+
+            # Use heuristic from child to goal for priority
+            child.path_cost = crowfliesdistance(neighbour, end_town)
+            frontier.put((child.path_cost, child))
+
+    return None # No path found (greedy is not complete)
 
 
 # Parcours à coût uniforme
@@ -240,7 +251,7 @@ def run_search():
             + " avec "
             + search_algorithms[search_method]
         )
-        if cost_type == 0 or search_method == 4:  # distance
+        if cost_type == 0:  # distance
             label_distance["text"] = "Distance: " + str(path.path_cost) + "km"
         else:  # time
             label_distance["text"] = "Temps: " + str(path.path_cost) + "min"
