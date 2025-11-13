@@ -29,6 +29,13 @@ path_color = "red"
 visited_color = "blue"
 
 
+def mark_town_visited(town):
+    """Mark a town as visited by changing its color to blue"""
+    if town in town_circles:
+        canvas1.itemconfig(town_circles[town], fill=visited_color)
+        canvas1.update()  # Force GUI update
+
+
 def deg2rad(deg):
     return deg * (math.pi / 180)
 
@@ -52,19 +59,47 @@ def crowfliesdistance(town1, town2):
     # distance in km
 
 
-def mark_town_visited(town):
-    """Mark a town as visited by changing its color to blue"""
-    if town in town_circles:
-        canvas1.itemconfig(town_circles[town], fill=visited_color)
-        canvas1.update()  # Force GUI update
-
-
 # A-Star
 def a_star(start_town, end_town, cost_type):
     start_node = Node(start_town)
-    if start_town == end_town:
-        return start_node
-    return None
+
+    # Initialize heuristic for start node
+    start_node.path_cost = crowfliesdistance(start_town, end_town)
+
+    frontier = PriorityQueue(maxsize=0)
+    frontier.put((start_node.path_cost, start_node))
+    explored = set()
+
+    # Track actual path costs
+    actual_costs = {start_node.state: 0}
+
+    while not frontier.empty():
+        node_cost, node = frontier.get()  # get the node with the lowest cost (heuristic + actual)
+        mark_town_visited(node.state)
+
+        if node.state == end_town:
+            node.path_cost = actual_costs[node.state]  # Return actual path cost
+            return node
+
+        if node.state in explored:
+            continue
+
+        explored.add(node.state)
+        for neighbour, road in node.state.neighbours.items():
+            child = Node(neighbour, node, road)
+            if child.state in explored:
+                continue
+
+            if cost_type == 0:  # distance
+                new_actual_cost = actual_costs[node.state] + road.distance
+            else:  # time
+                new_actual_cost = actual_costs[node.state] + road.time
+            actual_costs[child.state] = new_actual_cost
+
+            # Use heuristic from child to goal for priority + actual path cost
+            # Same as greedy but the heuristic is not alone == find the optimal path
+            child.path_cost = crowfliesdistance(neighbour, end_town) + new_actual_cost
+            frontier.put((child.path_cost, child))
 
 
 # Recherche gloutonne
