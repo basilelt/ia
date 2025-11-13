@@ -65,12 +65,11 @@ def ucs(start_town, end_town, cost_type):
         # skip if better path found
         if node.state in explored or node_cost > frontier_costs.get(node.state):
             continue
-        
+
         if node.state == end_town:
             return node
         
         explored.add(node.state)
-        
         for neighbour, road in node.state.neighbours.items():
             child = Node(neighbour, node, road)
             
@@ -96,10 +95,12 @@ def dfs_recursive(node, end_town, explored, cost_type, depth_limit=None):
     for neighbour, road in node.state.neighbours.items():
         if neighbour not in explored:
             child = Node(neighbour, node, road)
+            
             if cost_type == 0:  # distance
                 child.path_cost = node.path_cost + road.distance
             else:  # time
                 child.path_cost = node.path_cost + road.time
+                
             if depth_limit is not None:
                 result = dfs_recursive(child, end_town, explored, cost_type, depth_limit - 1)
             else:
@@ -144,10 +145,12 @@ def bfs(start_town, end_town, cost_type):
             # print("Exploring:", node.state.name)
             for neighbour, road in node.state.neighbours.items():
                 child = Node(neighbour, node, road)
+                
                 if cost_type == 0:  # distance
                     child.path_cost = node.path_cost + road.distance
                 else:  # time
                     child.path_cost = node.path_cost + road.time
+                    
                 # print("  Child:", child.state.name, "Cost:", child.path_cost)
                 frontier.put(child)
 
