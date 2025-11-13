@@ -49,23 +49,41 @@ def greedy_search(start_town, end_town, cost_type):
     return None
 
 
-# Parcours à coût uniforme - ici
+# Parcours à coût uniforme
 def ucs(start_town, end_town, cost_type):
     start_node = Node(start_town)
     frontier = PriorityQueue(maxsize=0)
     frontier.put((start_node.path_cost, start_node))
     explored = set()
     
+    # Track costs in frontier
+    frontier_costs = {start_node.state: start_node.path_cost}
+
     while not frontier.empty():
-        node = frontier.get() # get the node with the lowest cost
+        node_cost, node = frontier.get() # get the node with the lowest cost
+        
+        # skip if better path found
+        if node.state in explored or node_cost > frontier_costs.get(node.state):
+            continue
+        
         if node.state == end_town:
             return node
         
-        if node.state not in explored:
-            explored.add(node.state)
-            for 
-
-
+        explored.add(node.state)
+        
+        for neighbour, road in node.state.neighbours.items():
+            child = Node(neighbour, node, road)
+            
+            if cost_type == 0:  # distance
+                child.path_cost = node.path_cost + road.distance
+            else:  # time
+                child.path_cost = node.path_cost + road.time
+                
+            if child.state not in explored:
+                if child.state not in frontier_costs or child.path_cost < frontier_costs[child.state]:
+                    frontier_costs[child.state] = child.path_cost
+                    frontier.put((child.path_cost, child))
+                
 
 def dfs_recursive(node, end_town, explored, cost_type, depth_limit=None):
     if node.state == end_town:
