@@ -34,10 +34,10 @@ def deg2rad(deg):
 
 # Distance vol d'oiseau
 def crowfliesdistance(town1, town2):    
-    lon1 = longitude_to_pixel(town1.longitude)
-    lat1 = latitude_to_pixel(town1.latitude)
-    lon2 = longitude_to_pixel(town2.longitude)
-    lat2 = latitude_to_pixel(town2.latitude)
+    lat1 = town1.latitude
+    lon1 = town1.longitude
+    lat2 = town2.latitude
+    lon2 = town2.longitude
     
     R = 6371 # Radius of the earth in km
     dLat = deg2rad(lat2-lat1)
