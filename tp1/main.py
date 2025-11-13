@@ -49,12 +49,22 @@ def greedy_search(start_town, end_town, cost_type):
     return None
 
 
-# Parcours à coût uniforme
+# Parcours à coût uniforme - ici
 def ucs(start_town, end_town, cost_type):
     start_node = Node(start_town)
-    frontier = Queue(maxsize=0)
-    frontier.put(start_node)
+    frontier = PriorityQueue(maxsize=0)
+    frontier.put((start_node.path_cost, start_node))
     explored = set()
+    
+    while not frontier.empty():
+        node = frontier.get() # get the node with the lowest cost
+        if node.state == end_town:
+            return node
+        
+        if node.state not in explored:
+            explored.add(node.state)
+            for 
+
 
 
 def dfs_recursive(node, end_town, explored, cost_type, depth_limit=None):
