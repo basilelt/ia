@@ -4,6 +4,7 @@ class Node:
         self.path_cost = float(0)
         self.parent = parent
         self.road_to_parent = road_to_parent
+        self.greedy_path_cost = 0
 
     def __lt__(self, other):
             # Chooses the first instance when comparing to another instance of Node

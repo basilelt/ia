@@ -70,18 +70,20 @@ def greedy_search(start_town, end_town, cost_type):
         node_cost, node = frontier.get() # get the node with the lowest cost
         
         if node.state == end_town:
+            node.path_cost = node.greedy_path_cost
             return node
         
         explored.add(node.state)
         for neighbour, road in node.state.neighbours.items():
             child = Node(neighbour, node, road)
+            child.greedy_path_cost = node.greedy_path_cost + road.distance
+            
             # Crowflies distance
             child.path_cost = crowfliesdistance(node.state, neighbour)
             
             if child.state not in explored and child.state not in frontier_costs:
                 frontier_costs[child.state] = child.path_cost
                 frontier.put((child.path_cost, child))
-
 
     return None # No path found (greedy is non completful)
 
@@ -238,7 +240,7 @@ def run_search():
             + " avec "
             + search_algorithms[search_method]
         )
-        if cost_type == 0:  # distance
+        if cost_type == 0 or search_method == 4:  # distance
             label_distance["text"] = "Distance: " + str(path.path_cost) + "km"
         else:  # time
             label_distance["text"] = "Temps: " + str(path.path_cost) + "min"
