@@ -14,7 +14,7 @@ def update_q_table(Q, s, a, r, sprime, alpha, gamma):
 
 
 # TODO
-def epsilon_greedy(Q, s, epsilone):
+def epsilon_greedy(Q, s, epsilon):
     """
     This function implements the epsilon greedy algorithm.
     Takes as input the Q function for all states, a state s, and epsilon.
