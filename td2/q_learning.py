@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+# TODO
 def update_q_table(Q, s, a, r, sprime, alpha, gamma):
     """
     This function should update the Q function for a given pair of action-state
@@ -12,11 +13,14 @@ def update_q_table(Q, s, a, r, sprime, alpha, gamma):
     """
 
 
+# TODO
 def epsilon_greedy(Q, s, epsilone):
     """
     This function implements the epsilon greedy algorithm.
-    Takes as unput the Q function for all states, a state s, and epsilon.
+    Takes as input the Q function for all states, a state s, and epsilon.
     It should return the action to take following the epsilon greedy algorithm.
+
+    Big epsilon means more exploration. Should use a sinusoidal epsilon (high at the beginning, low at the end, etc.)
     """
 
 
@@ -28,14 +32,18 @@ if __name__ == "__main__":
 
     Q = np.zeros([env.observation_space.n, env.action_space.n])
 
-    alpha = 0.01 # choose your own
+    # TODO
+    alpha = 0.01  # choose your own
 
-    gamma = 0.8 # choose your own
+    # TODO
+    gamma = 0.8  # choose your own
 
-    epsilon = 0.2 # choose your own
+    # TODO
+    epsilon = 0.2  # choose your own
 
-    n_epochs = 20 # choose your own
-    max_itr_per_epoch = 100 # choose your own
+    # TODO
+    n_epochs = 20  # choose your own
+    max_itr_per_epoch = 100  # choose your own
     rewards = []
 
     for e in range(n_epochs):
@@ -45,32 +53,28 @@ if __name__ == "__main__":
 
         for _ in range(max_itr_per_epoch):
             A = epsilon_greedy(Q=Q, s=S, epsilone=epsilon)
-
             Sprime, R, done, _, info = env.step(A)
-
             r += R
-
             Q = update_q_table(
                 Q=Q, s=S, a=A, r=R, sprime=Sprime, alpha=alpha, gamma=gamma
             )
 
-            # Update state and put a stoping criteria
+            # TODO
+            # Update state and put a stopping criteria
 
         print("episode #", e, " : r = ", r)
-
         rewards.append(r)
 
     print("Average reward = ", np.mean(rewards))
 
+    # TODO
     # plot the rewards in function of epochs
 
     print("Training finished.\n")
 
-    
+    # TODO
     """
-    
     Evaluate the q-learning algorihtm
-    
     """
 
     env.close()
