@@ -17,72 +17,47 @@ def alpha_beta_decision(board, turn, queue):
     )
 
 
-def terminal_test(state):
-    winner = state.check_victory(update_display=False)
-    if winner:
-        return True
-    if not state.get_possible_moves():
-        return True  # Draw
-
-    return False
-
-
-def utility(state, maximizing_player):
-    winner = state.check_victory(update_display=False)
-    if winner == maximizing_player:
-        return 1  # Maximizing player wins
-    elif winner != 0:
-        return -1  # Opponent wins
-    else:
+def max_value(state, turn):
+    # If the previous move ended the game, current player to play loses
+    if state.check_victory(update_display=False):
+        return -1
+    if turn > 9:
         return 0  # Draw
 
-
-def get_current_player(state):
-    moves_made = 9 - len(state.get_possible_moves())
-    return 1 if moves_made % 2 == 0 else 2
-
-
-def max_value(state, maximizing_player):
-    if terminal_test(state):
-        return utility(state, maximizing_player)
-
-    v = -float("inf")
-    current_player = get_current_player(state)
-
-    for move in state.get_possible_moves():
+    possible_moves = state.get_possible_moves()
+    value = -2
+    for move in possible_moves:
         new_state = state.copy()
-        new_state.grid[move[0]][move[1]] = current_player
-        v = max(v, min_value(new_state, maximizing_player))
+        new_state.grid[move[0]][move[1]] = turn % 2 + 1
+        value = max(value, min_value(new_state, turn + 1))
+    return value
 
-    return v
 
+def min_value(state, turn):
+    # If the previous move ended the game, current player to play wins (from MAX perspective)
+    if state.check_victory(update_display=False):
+        return 1
+    if turn > 9:
+        return 0  # Draw
 
-def min_value(state, maximizing_player):
-    if terminal_test(state):
-        return utility(state, maximizing_player)
-
-    v = float("inf")
-    current_player = get_current_player(state)
-
-    for move in state.get_possible_moves():
+    possible_moves = state.get_possible_moves()
+    value = 2
+    for move in possible_moves:
         new_state = state.copy()
-        new_state.grid[move[0]][move[1]] = current_player
-        v = min(v, max_value(new_state, maximizing_player))
-
-    return v
+        new_state.grid[move[0]][move[1]] = turn % 2 + 1
+        value = min(value, max_value(new_state, turn + 1))
+    return value
 
 
 def minimax_decision(board, turn, queue):
-    maximizing_player = turn % 2 + 1  # Current player making the decision
-    best_move = None
-    best_value = -float("inf")
+    possible_moves = board.get_possible_moves()
+    best_move = possible_moves[0]
+    best_value = -2
 
-    for move in board.get_possible_moves():
-        new_state = board.copy()
-        new_state.grid[move[0]][move[1]] = maximizing_player
-
-        # After our move, opponent responds (MIN)
-        value = min_value(new_state, maximizing_player)
+    for move in possible_moves:
+        updated_board = board.copy()
+        updated_board.grid[move[0]][move[1]] = turn % 2 + 1
+        value = min_value(updated_board, turn + 1)
         if value > best_value:
             best_value = value
             best_move = move
