@@ -176,7 +176,7 @@ class TicTacToe:
         self.ai_move = Queue()
 
     def current_player(self):
-        return self.turn % 2 + 1
+        return (self.turn - 1) % 2 + 1
 
     def launch(self):
         self.board.reinit()
