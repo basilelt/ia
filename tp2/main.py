@@ -4,6 +4,7 @@ import numpy as np
 import random as rnd
 from threading import Thread
 from queue import Queue
+from tqdm import tqdm
 
 
 player_type = ["human", "AI: Min-Max", "AI: alpha-beta"]
@@ -16,61 +17,89 @@ def alpha_beta_decision(board, turn, queue):
     )
 
 
-def minimax_decision(board, turn, queue):
-    ## https://www.datacamp.com/tutorial/minimax-algorithm-for-ai-in-python
-    if board.check_victory(update_display=False):
-        if turn % 2 == 0:
-            return -1  # Min player won
-        else:
-            return +1  # Max player won
+def terminal_test(state):
+    winner = state.check_victory(update_display=False)
+    if winner:
+        return True
+    if not state.get_possible_moves():
+        return True  # Draw
 
-    if turn % 2 == 0:
-        score = max_value(board, turn, queue)
+    return False
+
+
+def utility(state, maximizing_player):
+    winner = state.check_victory(update_display=False)
+    if winner == maximizing_player:
+        return 1  # Maximizing player wins
+    elif winner != 0:
+        return -1  # Opponent wins
     else:
-        score = min_value(board, turn, queue)
-    return score
+        return 0  # Draw
 
 
-def max_value(board, turn, queue):
-    bestScore = -float("inf")
-    possible_moves = board.get_possible_moves()
-    for move in possible_moves:
-        # make the move
-        queue.put(move)
-
-        score = minimax_decision(board, turn + 1, queue)
-
-        # undo the move
-        queue.get()
-
-        bestScore = max(score, bestScore)
-    return bestScore
+def get_current_player(state):
+    moves_made = 9 - len(state.get_possible_moves())
+    return 1 if moves_made % 2 == 0 else 2
 
 
-def min_value(board, turn, queue):
-    bestScore = +float("inf")
-    possible_moves = board.get_possible_moves()
-    for move in possible_moves:
-        # make the move
-        queue.put(move)
+def max_value(state, maximizing_player):
+    if terminal_test(state):
+        return utility(state, maximizing_player)
 
-        score = minimax_decision(board, turn + 1, queue)
+    v = -float("inf")
+    current_player = get_current_player(state)
 
-        # undo the move
-        queue.get()
+    for move in state.get_possible_moves():
+        new_state = state.copy()
+        new_state.grid[move[0]][move[1]] = current_player
+        v = max(v, min_value(new_state, maximizing_player))
 
-        bestScore = min(score, bestScore)
-    return bestScore
+    return v
+
+
+def min_value(state, maximizing_player):
+    if terminal_test(state):
+        return utility(state, maximizing_player)
+
+    v = float("inf")
+    current_player = get_current_player(state)
+
+    for move in state.get_possible_moves():
+        new_state = state.copy()
+        new_state.grid[move[0]][move[1]] = current_player
+        v = min(v, max_value(new_state, maximizing_player))
+
+    return v
+
+
+def minimax_decision(board, turn, queue):
+    maximizing_player = turn % 2 + 1  # Current player making the decision
+    best_move = None
+    best_value = -float("inf")
+
+    for move in board.get_possible_moves():
+        new_state = board.copy()
+        new_state.grid[move[0]][move[1]] = maximizing_player
+
+        # After our move, opponent responds (MIN)
+        value = min_value(new_state, maximizing_player)
+        if value > best_value:
+            best_value = value
+            best_move = move
+
+    queue.put(best_move)
 
 
 class Board:
-    grid = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
-    drawn_symbols = [["", "", ""], ["", "", ""], ["", "", ""]]
+    def __init__(self):
+        self.grid = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+        self.drawn_symbols = [["", "", ""], ["", "", ""], ["", "", ""]]
 
     # copy the board
     def copy(self):
         new_board = Board()
         new_board.grid = np.array(self.grid, copy=True)
+        new_board.drawn_symbols = [row[:] for row in self.drawn_symbols]
         return new_board
 
     # return all possible moves for the board
@@ -106,29 +135,33 @@ class Board:
         # Checking lines
         for i in range(3):
             if self.grid[0][i] == self.grid[1][i] == self.grid[2][i] != 0:
+                winner = self.grid[0][i]
                 if update_display:
                     for j in range(3):
                         canvas1.itemconfig(self.drawn_symbols[j][i], fill="red")
-                return True
+                return winner
         # Checking columns
         for i in range(3):
             if self.grid[i][0] == self.grid[i][1] == self.grid[i][2] != 0:
+                winner = self.grid[i][0]
                 if update_display:
                     for j in range(3):
                         canvas1.itemconfig(self.drawn_symbols[i][j], fill="red")
-                return True
+                return winner
         # Checking diagonals
         if self.grid[0][0] == self.grid[1][1] == self.grid[2][2] != 0:
+            winner = self.grid[0][0]
             if update_display:
                 for i in range(3):
                     canvas1.itemconfig(self.drawn_symbols[i][i], fill="red")
-            return True
+            return winner
         if self.grid[0][2] == self.grid[1][1] == self.grid[2][0] != 0:
+            winner = self.grid[0][2]
             if update_display:
                 for i in range(3):
                     canvas1.itemconfig(self.drawn_symbols[i][2 - i], fill="red")
-            return True
-        return False
+            return winner
+        return 0
 
 
 class TicTacToe:
@@ -198,12 +231,11 @@ class TicTacToe:
     # Manage game turn
     def handle_turn(self):
         self.human_turn = False
-        if self.board.check_victory() or self.turn == 9:
+        winner = self.board.check_victory()
+        if winner or self.turn == 9:
             self.information_label["fg"] = "red"
-            if self.board.check_victory():
-                self.information_label["text"] = (
-                    "Player " + str((self.turn - 1) % 2 + 1) + " wins !"
-                )
+            if winner:
+                self.information_label["text"] = "Player " + str(winner) + " wins !"
             else:
                 self.information_label["text"] = "This is a draw !"
             return
